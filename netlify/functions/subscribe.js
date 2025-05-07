@@ -1,10 +1,27 @@
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
+const headers = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 exports.handler = async function (event, context) {
+  // Handle preflight OPTIONS request
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers,
+      body: "",
+    };
+  }
+
+  // Handle POST request for subscribing the user
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
+      headers,
       body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
@@ -14,6 +31,7 @@ exports.handler = async function (event, context) {
   if (!email) {
     return {
       statusCode: 400,
+      headers,
       body: JSON.stringify({ error: "Missing email" }),
     };
   }
@@ -44,6 +62,7 @@ exports.handler = async function (event, context) {
     if (!syncData.contact || !syncData.contact.id) {
       return {
         statusCode: 500,
+        headers,
         body: JSON.stringify({
           error: "Failed to sync contact",
           details: syncData,
@@ -71,6 +90,7 @@ exports.handler = async function (event, context) {
 
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({
         contact: syncData.contact,
         tag: tagData.contactTag,
@@ -79,6 +99,7 @@ exports.handler = async function (event, context) {
   } catch (err) {
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({ error: "Request failed", details: err.message }),
     };
   }

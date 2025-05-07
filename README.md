@@ -1,4 +1,3 @@
-// === File: README.md ===
 # ActiveCampaign API Proxy with Vercel
 
 This project sets up a secure serverless API proxy using Vercel to add users to a newsletter list on ActiveCampaign without exposing the API key on the frontend.
@@ -11,6 +10,7 @@ This project sets up a secure serverless API proxy using Vercel to add users to 
 - `ACTIVE_CAMPAIGN_API_KEY` – Your ActiveCampaign API key
 - `ACTIVE_CAMPAIGN_URL` – Your ActiveCampaign API base URL (e.g., `https://youraccount.api-us1.com`)
 - `ACTIVE_CAMPAIGN_LIST_ID` – The list ID to subscribe users to
+- `ACTIVE_CAMPAIGN_TAG_ID` – The tag ID to assign to the user after subscribing
 
 3. Redeploy your project after setting environment variables.
 
@@ -24,4 +24,4 @@ Send a POST request to `/api/subscribe` with a JSON body like:
 }
 ```
 
-This will add the user to your ActiveCampaign list securely.
+This will add the user to your ActiveCampaign list and assign them a tag securely.

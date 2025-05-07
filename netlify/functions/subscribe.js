@@ -1,12 +1,21 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+exports.handler = async function (event, context) {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
-  const { email } = req.body;
+  const { email } = JSON.parse(event.body);
 
   if (!email) {
-    return res.status(400).json({ error: "Missing email" });
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Missing email" }),
+    };
   }
 
   const API_URL = process.env.ACTIVE_CAMPAIGN_URL;
@@ -15,7 +24,6 @@ export default async function handler(req, res) {
   const TAG_ID = process.env.ACTIVE_CAMPAIGN_TAG_ID;
 
   try {
-    // Step 1: Sync the contact
     const syncResponse = await fetch(`${API_URL}/api/3/contact/sync`, {
       method: "POST",
       headers: {
@@ -34,14 +42,17 @@ export default async function handler(req, res) {
     const syncData = await syncResponse.json();
 
     if (!syncData.contact || !syncData.contact.id) {
-      return res
-        .status(500)
-        .json({ error: "Failed to sync contact", details: syncData });
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: "Failed to sync contact",
+          details: syncData,
+        }),
+      };
     }
 
     const contactId = syncData.contact.id;
 
-    // Step 2: Add tag to the contact
     const tagResponse = await fetch(`${API_URL}/api/3/contactTags`, {
       method: "POST",
       headers: {
@@ -58,10 +69,17 @@ export default async function handler(req, res) {
 
     const tagData = await tagResponse.json();
 
-    res
-      .status(syncResponse.status)
-      .json({ contact: syncData.contact, tag: tagData.contactTag });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        contact: syncData.contact,
+        tag: tagData.contactTag,
+      }),
+    };
   } catch (err) {
-    res.status(500).json({ error: "Request failed", details: err.message });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Request failed", details: err.message }),
+    };
   }
-}
+};

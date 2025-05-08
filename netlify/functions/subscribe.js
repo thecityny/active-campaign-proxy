@@ -51,7 +51,6 @@ exports.handler = async function (event, context) {
       body: JSON.stringify({
         contact: {
           email,
-          listid: [LIST_ID],
           status: 1,
         },
       }),
@@ -72,6 +71,21 @@ exports.handler = async function (event, context) {
 
     const contactId = syncData.contact.id;
 
+    const listResponse = await fetch(`${API_URL}/api/3/contactLists`, {
+      method: "POST",
+      headers: {
+        "Api-Token": API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contactList: {
+          contact: contactId,
+          list: LIST_ID,
+          status: 1,
+        },
+      }),
+    });
+
     const tagResponse = await fetch(`${API_URL}/api/3/contactTags`, {
       method: "POST",
       headers: {
@@ -86,6 +100,7 @@ exports.handler = async function (event, context) {
       }),
     });
 
+    const listData = await listResponse.json();
     const tagData = await tagResponse.json();
 
     return {
@@ -93,6 +108,7 @@ exports.handler = async function (event, context) {
       headers,
       body: JSON.stringify({
         contact: syncData.contact,
+        list: listData.contactList,
         tag: tagData.contactTag,
       }),
     };

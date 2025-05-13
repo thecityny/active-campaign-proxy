@@ -1,6 +1,6 @@
-# ActiveCampaign API Proxy with Vercel
+# ActiveCampaign API Proxy with Netlify
 
-This project sets up a secure serverless API proxy using Vercel to add users to a newsletter list on ActiveCampaign without exposing the API key on the frontend.
+This project sets up a secure serverless API proxy using Netlify to add users to a newsletter list on ActiveCampaign without exposing the API key on the frontend.
 
 ## Setup
 
@@ -12,11 +12,14 @@ This project sets up a secure serverless API proxy using Vercel to add users to 
 - `ACTIVE_CAMPAIGN_LIST_ID` – The list ID to subscribe users to
 - `ACTIVE_CAMPAIGN_TAG_ID` – The tag ID to assign to the user after subscribing
 
-3. Redeploy your project after setting environment variables.
+You can get these credentials from your ActiveCampaign admin account page.
+
+3. Make sure the "Build command" is set to `npm install` and the Functions directory is set to `netlify/functions`.
+4. Redeploy your project after setting environment variables.
 
 ## Usage
 
-Send a POST request to `/api/subscribe` with a JSON body like:
+Send a POST request to `.netlify/functions/subscribe` with a JSON body like:
 
 ```json
 {
@@ -25,3 +28,7 @@ Send a POST request to `/api/subscribe` with a JSON body like:
 ```
 
 This will add the user to your ActiveCampaign list and assign them a tag securely.
+
+## Example Usage
+
+See the [NewsletterSignup component](https://github.com/thecityny/2025-meet-your-mayor/blob/main/src/components/NewsletterSignup.tsx) inside the [Meet Your Mayor 2025 codebase](https://github.com/thecityny/2025-meet-your-mayor/tree/main) for an example of how we use this API proxy in production. 

@@ -4,8 +4,8 @@ This project sets up a secure serverless API proxy using Vercel to add users to 
 
 ## Setup
 
-1. Clone this repo and deploy it to [Vercel](https://vercel.com/).
-2. In your Vercel dashboard, go to your project settings and add the following environment variables:
+1. Clone this repo and deploy it to [Netlify](www.netlify.com).
+2. In your Netlify dashboard, go to your project settings and add the following environment variables:
 
 - `ACTIVE_CAMPAIGN_API_KEY` – Your ActiveCampaign API key
 - `ACTIVE_CAMPAIGN_URL` – Your ActiveCampaign API base URL (e.g., `https://youraccount.api-us1.com`)

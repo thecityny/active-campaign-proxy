@@ -37,7 +37,7 @@ exports.handler = async function (event, context) {
     };
   }
 
-  const { email } = JSON.parse(event.body);
+  const { email, quizResults } = JSON.parse(event.body);
 
   if (!email) {
     return {
@@ -82,6 +82,21 @@ exports.handler = async function (event, context) {
 
     const contactId = syncData.contact.id;
 
+    const quizResultsObject = !!quizResults
+      ? {
+          fieldValues: [
+            {
+              field: "90", // Field ID for quiz results
+              value: quizResults,
+            },
+            {
+              field: "91", // Field ID for date quiz results requested
+              value: new Date().toISOString(),
+            },
+          ],
+        }
+      : {};
+
     const listResponse = await fetch(`${API_URL}/api/3/contactLists`, {
       method: "POST",
       headers: {
@@ -93,6 +108,7 @@ exports.handler = async function (event, context) {
           contact: contactId,
           list: LIST_ID,
           status: 1,
+          ...quizResultsObject, // Include quiz results if provided
         },
       }),
     });

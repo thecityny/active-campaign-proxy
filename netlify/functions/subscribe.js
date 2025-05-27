@@ -135,7 +135,7 @@ exports.handler = async function (event, context) {
 
       fieldResultsResponse = await quizRes.json();
 
-      // 2. Save quiz submission timestamp
+      // 2. Save request submission timestamp
       const dateRes = await fetch(`${API_URL}/api/3/fieldValues`, {
         method: "POST",
         headers: {
@@ -145,7 +145,7 @@ exports.handler = async function (event, context) {
         body: JSON.stringify({
           fieldValue: {
             contact: contactId,
-            field: "91", // submission date field ID
+            field: "91", // "date quiz results requested" field ID
             value: new Date().toISOString(),
           },
         }),

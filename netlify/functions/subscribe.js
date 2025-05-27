@@ -12,7 +12,9 @@ exports.handler = async function (event, context) {
   const origin = event.headers.origin;
 
   const headers = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : "null",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
@@ -80,21 +82,6 @@ exports.handler = async function (event, context) {
 
     const contactId = syncData.contact.id;
 
-    const quizResultsObject = !!quizResults
-      ? {
-          fieldValues: [
-            {
-              field: "90", // Field ID for quiz results
-              value: quizResults,
-            },
-            {
-              field: "91", // Field ID for date quiz results requested
-              value: new Date().toISOString(),
-            },
-          ],
-        }
-      : {};
-
     const listResponse = await fetch(`${API_URL}/api/3/contactLists`, {
       method: "POST",
       headers: {
@@ -106,7 +93,6 @@ exports.handler = async function (event, context) {
           contact: contactId,
           list: LIST_ID,
           status: 1,
-          ...quizResultsObject, // Include quiz results if provided
         },
       }),
     });
@@ -128,6 +114,46 @@ exports.handler = async function (event, context) {
     const listData = await listResponse.json();
     const tagData = await tagResponse.json();
 
+    let fieldResultsResponse, fieldDateResponse;
+
+    if (quizResults) {
+      // 1. Save quiz results
+      const quizRes = await fetch(`${API_URL}/api/3/fieldValues`, {
+        method: "POST",
+        headers: {
+          "Api-Token": API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fieldValue: {
+            contact: contactId,
+            field: "90", // quizResults field ID
+            value: quizResults,
+          },
+        }),
+      });
+
+      fieldResultsResponse = await quizRes.json();
+
+      // 2. Save request submission timestamp
+      const dateRes = await fetch(`${API_URL}/api/3/fieldValues`, {
+        method: "POST",
+        headers: {
+          "Api-Token": API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fieldValue: {
+            contact: contactId,
+            field: "91", // "date quiz results requested" field ID
+            value: new Date().toISOString(),
+          },
+        }),
+      });
+
+      fieldDateResponse = await dateRes.json();
+    }
+
     return {
       statusCode: 200,
       headers,
@@ -135,6 +161,8 @@ exports.handler = async function (event, context) {
         contact: syncData.contact,
         list: listData.contactList,
         tag: tagData.contactTag,
+        quizResultsField: fieldResultsResponse,
+        quizSubmittedAtField: fieldDateResponse,
       }),
     };
   } catch (err) {

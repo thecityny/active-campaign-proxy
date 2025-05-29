@@ -50,6 +50,7 @@ exports.handler = async function (event, context) {
   const API_URL = process.env.ACTIVE_CAMPAIGN_URL;
   const API_KEY = process.env.ACTIVE_CAMPAIGN_API_KEY;
   const LIST_ID = process.env.ACTIVE_CAMPAIGN_LIST_ID;
+  const QUIZ_RESULTS_LIST_ID = process.env.ACTIVE_CAMPAIGN_QUIZ_RESULTS_LIST_ID;
   const TAG_ID = process.env.ACTIVE_CAMPAIGN_TAG_ID;
 
   try {
@@ -84,6 +85,41 @@ exports.handler = async function (event, context) {
     const contactId = syncData.contact.id;
 
     let listData, tagData, fieldResultsData, fieldDateData;
+
+    // Subscribe the contact to an ActiveCampaign list
+    const listResponse = await fetch(`${API_URL}/api/3/contactLists`, {
+      method: "POST",
+      headers: {
+        "Api-Token": API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contactList: {
+          contact: contactId,
+          list: !!quizResults ? QUIZ_RESULTS_LIST_ID : LIST_ID,
+          status: 1,
+        },
+      }),
+    });
+
+    listData = await listResponse.json();
+
+    // Tag the contact in ActiveCampaign
+    const tagResponse = await fetch(`${API_URL}/api/3/contactTags`, {
+      method: "POST",
+      headers: {
+        "Api-Token": API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contactTag: {
+          contact: contactId,
+          tag: TAG_ID,
+        },
+      }),
+    });
+
+    tagData = await tagResponse.json();
 
     // If quizResults is provided, save it as a field value with the email contact, and
     // also save the timestamp of when the quiz results were requested.
@@ -124,42 +160,7 @@ exports.handler = async function (event, context) {
       });
 
       fieldDateData = await dateRes.json();
-    } else {
-      // If quizResults is not provided, subscribe the user to the provided newsletter list
-      const listResponse = await fetch(`${API_URL}/api/3/contactLists`, {
-        method: "POST",
-        headers: {
-          "Api-Token": API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contactList: {
-            contact: contactId,
-            list: LIST_ID,
-            status: 1,
-          },
-        }),
-      });
-
-      listData = await listResponse.json();
     }
-
-    // Tag the contact with the provided tag in both cases
-    const tagResponse = await fetch(`${API_URL}/api/3/contactTags`, {
-      method: "POST",
-      headers: {
-        "Api-Token": API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contactTag: {
-          contact: contactId,
-          tag: TAG_ID,
-        },
-      }),
-    });
-
-    tagData = await tagResponse.json();
 
     return {
       statusCode: 200,
